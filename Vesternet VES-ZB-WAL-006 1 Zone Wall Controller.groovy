@@ -209,7 +209,7 @@ def sendEventToChild(buttonNumber, value) {
 
 def getModelNumberOfButtons() {
     logDebug("getModelNumberOfButtons called")
-    ["ZGRC-KEY-007" : 2]
+    ["ZGRC-KEY-007" : 2, "ZG2833K2_EU07" : 2]
 }
 
 def getSupportedButtonValues() {
