@@ -1,17 +1,17 @@
 /**
- *	Vesternet VES-ZB-WAL-006 1 Zone Wall Controller
+ *	Vesternet VES-ZB-WAL-012 4 Zone Wall Controller
  * 
  */
 import groovy.json.JsonOutput
 metadata {
-	definition (name: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller", namespace: "Vesternet", author: "Vesternet", mcdSync:true, ocfDeviceType: "x.com.st.d.remotecontroller", mnmn: "Sunricher", vid: "generic-2-button") {
+	definition (name: "Vesternet VES-ZB-WAL-012 4 Zone Wall Controller", namespace: "Vesternet", author: "Vesternet", mcdSync:true, ocfDeviceType: "x.com.st.d.remotecontroller", mnmn: "Sunricher", vid: "generic-8-button") {
         capability "Button"
         capability "Sensor"
 		capability "Battery"
         capability "Configuration"
-        
-		fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZGRC-KEY-007", deviceJoinName: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller"
-        fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZG2833K2_EU07", deviceJoinName: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller"        
+        		    
+        fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZG2833K8_EU05", deviceJoinName: "Vesternet VES-ZB-WAL-012 4 Zone Wall Controller"            
+        fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05,1000", outClusters: "0003,0004,0005,0006,0008,0019,1000", manufacturer: "Sunricher", model: "ZG2833K8_EU05", deviceJoinName: "Vesternet VES-ZB-WAL-012 4 Zone Wall Controller"
 	}
 	preferences {
         input name: "logEnable", type: "bool", title: "Debug"
@@ -44,6 +44,12 @@ def configure() {
     logDebug("configure called")	
     def cmds = [ "zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0006 {${device.zigbeeId}} {}", "delay 200",
                 "zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0008 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x02 0x01 0x0006 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x02 0x01 0x0008 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x03 0x01 0x0006 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x03 0x01 0x0008 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x04 0x01 0x0006 {${device.zigbeeId}} {}", "delay 200",
+                "zdo bind 0x${device.deviceNetworkId} 0x04 0x01 0x0008 {${device.zigbeeId}} {}", "delay 200",
                 "zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0001 {${device.zigbeeId}} {}", "delay 200",
                 "st cr 0x${device.deviceNetworkId} 0x01 0x0001 0x21 0x20 7200 7200 {0x01}" ]
     logDebug("sending ${cmds}")
@@ -69,6 +75,7 @@ def getEvents(descriptionMap) {
     logDebug("getEvents called")
     logDebug("got descriptionMap: ${descriptionMap}")
 	def events = []    
+    def endpoint = descriptionMap.sourceEndpoint ? zigbee.convertHexToInt(descriptionMap.sourceEndpoint) : descriptionMap.endpoint ? zigbee.convertHexToInt(descriptionMap.endpoint) : device.endpointId.toInteger()
     if (descriptionMap.cluster == "0006" || descriptionMap.clusterId == "0006" || descriptionMap.clusterInt == 6) {
         def switchCommand = "${descriptionMap.command} unknown"
         switch (descriptionMap.command) {
@@ -82,7 +89,7 @@ def getEvents(descriptionMap) {
         logDebug("switch (0006) command: ${switchCommand}")
         if (descriptionMap.command == "00" || descriptionMap.command == "01") {
             switchCommand = zigbee.convertHexToInt(descriptionMap.command)            
-			def buttonNumber = switchCommand == 1 ? "1" : "2"
+			def buttonNumber = switchCommand == 1 ? (endpoint * 2) - 1 : (endpoint * 2) 
             logDebug("button number is ${buttonNumber}")
             events.add([name: "button", value: "pushed", data: [buttonNumber: buttonNumber], descriptionText: "Button Number ${buttonNumber} was pushed", isStateChange: true])
             sendEventToChild(buttonNumber, "pushed")
@@ -116,7 +123,7 @@ def getEvents(descriptionMap) {
                 }        
                 logDebug("level (0008) direction: ${levelDirection}")
                 levelDirection = zigbee.convertHexToInt(levelDirectionData)            
-                def buttonNumber = levelDirection == 0 ? "1" : "2"
+                def buttonNumber = levelDirection == 0 ? (endpoint * 2) - 1 : (endpoint * 2) 
                 logDebug("button number is ${buttonNumber}")
                 logDebug("button event is held")                
                 events.add([name: "button", value: "held", data: [buttonNumber: buttonNumber], descriptionText: "Button Number ${buttonNumber} was held", isStateChange: true])
@@ -186,7 +193,7 @@ def addChildButtons(numberOfButtons) {
 		try {
 			String childDni = "${device.deviceNetworkId}:$endpoint"
 			def componentLabel = (device.displayName.endsWith(' 1') ? device.displayName[0..-2] : (device.displayName + " Button ")) + "${endpoint}"
-			def child = addChildDevice("Vesternet", "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller Child Button", childDni, device.getHub().getId(), [
+			def child = addChildDevice("Vesternet", "Vesternet VES-ZB-WAL-012 4 Zone Wall Controller Child Button", childDni, device.getHub().getId(), [
 					completedSetup: true,
 					label         : componentLabel,
 					isComponent   : true,
@@ -209,7 +216,7 @@ def sendEventToChild(buttonNumber, value) {
 
 def getModelNumberOfButtons() {
     logDebug("getModelNumberOfButtons called")
-    ["ZGRC-KEY-007" : 2, "ZG2833K2_EU07" : 2]
+    ["ZG2833K8_EU05" : 8]
 }
 
 def getSupportedButtonValues() {
