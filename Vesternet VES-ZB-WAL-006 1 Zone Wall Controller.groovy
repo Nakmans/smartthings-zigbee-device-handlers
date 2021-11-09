@@ -4,13 +4,14 @@
  */
 import groovy.json.JsonOutput
 metadata {
-	definition (name: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller", namespace: "Vesternet", author: "Vesternet", mcdSync:true, ocfDeviceType: "x.com.st.d.remotecontroller", mnmn: "Sunricher", vid: "25df41cd-2547-3604-ab0c-cab8b5f7b9ca") {
+	definition (name: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller", namespace: "Vesternet", author: "Vesternet", mcdSync:true, ocfDeviceType: "x.com.st.d.remotecontroller", mnmn: "Sunricher", vid: "generic-2-button") {
         capability "Button"
         capability "Sensor"
 		capability "Battery"
         capability "Configuration"
         
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZGRC-KEY-007", deviceJoinName: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller"
+		fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZGRC-KEY-007", deviceJoinName: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller"
+        fingerprint profileId: "0104", endpointId: "01", inClusters: "0000,0001,0003,0B05", outClusters: "0003,0004,0005,0006,0008,0019,0300,1000", manufacturer: "Sunricher", model: "ZG2833K2_EU07", deviceJoinName: "Vesternet VES-ZB-WAL-006 1 Zone Wall Controller"        
 	}
 	preferences {
         input name: "logEnable", type: "bool", title: "Debug"
@@ -49,7 +50,7 @@ def configure() {
 	return cmds
 }
 
-def parse(String description) {
+void parse(String description) {
 	logDebug("parse called")
 	logDebug("got description: ${description}")	
     def descriptionMap = zigbee.parseDescriptionAsMap(description)
