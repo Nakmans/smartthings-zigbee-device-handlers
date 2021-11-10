@@ -54,7 +54,7 @@ def updated() {
 	if (logEnable) runIn(1800,logsOff)
 }
 
-def parse(String description) {
+void parse(String description) {
 	logDebug("parse called")
 	logDebug("got description: ${description}")	
     def event
