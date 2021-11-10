@@ -7,7 +7,6 @@ metadata {
 	definition (name: "Vesternet VES-ZB-SWI-005 2-Wire Capable Switch", namespace: "Vesternet", author: "Vesternet", mcdSync:true, ocfDeviceType: "oic.d.switch", mnmn: "SmartThings", vid: "generic-switch") {
         capability "Switch"
         capability "Actuator"
-        capability "Sensor"
 		capability "Refresh"		
 		capability "Configuration"
 
@@ -33,7 +32,7 @@ def updated() {
 	if (logEnable) runIn(1800,logsOff)
 }
 
-def parse(String description) {
+void parse(String description) {
 	logDebug("parse called")
 	logDebug("got description: ${description}")	
     def event
